@@ -1,8 +1,6 @@
 # Fix for older setuptools
 import multiprocessing, logging, os
 
-import flask_admin
-
 from setuptools import setup, find_packages
 
 
@@ -19,7 +17,7 @@ def desc():
 
 setup(
     name='Flask-Admin',
-    version=flask_admin.__version__,
+    version='1.0.2',
     url='https://github.com/mrjoes/flask-admin/',
     license='BSD',
     author='Serge S. Koval',
