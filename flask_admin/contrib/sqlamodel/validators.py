@@ -25,6 +25,9 @@ class Unique(object):
 
     def __call__(self, form, field):
         try:
+            if field.data is None:  # Most RDMBS treat all nulls as unique
+                return
+
             obj = (self.db_session.query(self.model)
                        .filter(self.column == field.data).one())
 
