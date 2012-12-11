@@ -7,6 +7,8 @@ from flask.ext.admin.model.form import converts, ModelConverterBase, InlineFormA
 from .validators import Unique
 from .fields import QuerySelectField, QuerySelectMultipleField, InlineModelFormList
 
+from itertools import chain
+
 
 class AdminModelConverter(ModelConverterBase):
     """
@@ -279,7 +281,34 @@ def get_form(model, converter,
     mapper = model._sa_class_manager.mapper
     field_args = field_args or {}
 
-    properties = ((p.key, p) for p in mapper.iterate_properties)
+    class KeyedProxy(object):
+        def __init__(self, obj, key):
+            self._obj = obj
+            self.key = key
+
+        def __getattribute__(self, attr):
+            if attr in ('key', '_obj'):
+                return object.__getattribute__(self, attr)
+            else:
+                return getattr(self._obj, attr)
+
+        def __delattr__(self, attr):
+            if attr == 'key':
+                super(KeyedProxy, self).__delattr__(attr)
+            else:
+                delattr(self._obj, attr)
+
+        def __setattr__(self, attr, val):
+            if attr == 'key' or (attr == '_obj' and not hasattr(self, attr)):
+                super(KeyedProxy, self).__setattr__(attr, val)
+            else:
+                setattr(self._obj, attr, val)
+
+        def __repr__(self):
+            return 'KeyedProxy(%s, %s)' % (self._obj, self.key)
+
+    model_properties_include = (KeyedProxy(mapper.get_property(getattr(model, p).key), p) for p in getattr(model, '__admin_form_include__', []))
+    properties = ((p.key, p) for p in chain(mapper.iterate_properties, model_properties_include))
 
     if only:
         props = dict(properties)
