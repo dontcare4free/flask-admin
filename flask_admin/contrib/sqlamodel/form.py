@@ -48,9 +48,6 @@ class AdminModelConverter(ModelConverterBase):
         if field_args:
             kwargs.update(field_args)
 
-        if kwargs.get('__IGNORE__'):
-            return None
-
         # Check if it is relation or property
         if hasattr(prop, 'direction'):
             remote_model = prop.mapper.class_
